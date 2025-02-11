@@ -1,3 +1,4 @@
+// src/app/member/containers/JoinContainer.tsx
 'use client'
 import JoinForm from '../components/JoinForm'
 import { useSearchParams } from 'next/navigation'
@@ -13,17 +14,20 @@ const JoinContainer = () => {
 
   // form을 FormType에 맞게 초기화
   const [form, setForm] = useState({
-    gender: 'FEMALE',
+    gender: 'FEMALE' as 'MALE' | 'FEMALE',
     email: '',
     password: '',
     confirmPassword: '',
     name: '',
-    zipCode: '', // 추가된 필드
-    address: '', // 추가된 필드
-    addressSub: '', // 추가된 필드
-    phoneNumber: '', // 추가된 필드
-    birthDt: '', // 생일 필드 추가 (필요하다면)
-    // 추가적인 필드도 필요에 따라 초기화
+    zipCode: '',
+    address: '',
+    addressSub: '',
+    phoneNumber: '',
+    birthDt: '',
+    requiredTerms1: false,
+    requiredTerms2: false,
+    requiredTerms3: false,
+    optionalTerms: 'false',
   })
 
   const onChange = useCallback((e) => {
@@ -46,6 +50,7 @@ const JoinContainer = () => {
     setIsPending(true)
     try {
       const formData = new FormData()
+
       // form 데이터를 formData에 추가
       for (const key in form) {
         formData.append(key, form[key])
@@ -53,9 +58,10 @@ const JoinContainer = () => {
 
       // searchParams를 FormData로 변환 후 추가
       searchParams.forEach((value, key) => {
-        formData.append(key, value as string) // value를 string으로 처리
+        formData.append(key, value as string)
       })
 
+      // processJoin에 하나의 FormData만 전달
       await processJoin(searchParams, formData)
       setFormAction('success')
     } catch (err) {
@@ -74,7 +80,7 @@ const JoinContainer = () => {
       onChange={onChange}
       onClick={onClick}
       onSelectDate={onSelectDate}
-      onSubmit={handleSubmit}
+      onSubmit={handleSubmit} // handleSubmit 전달
     />
   )
 }

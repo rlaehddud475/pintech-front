@@ -12,29 +12,42 @@ import { revalidatePath } from 'next/cache'
  */
 export const processJoin = async (params, formData: FormData) => {
   const redirectUrl = params?.redirectUrl ?? '/member/login'
-
-  const form = {}
-  let errors = {}
+  const form: Record<string, string | Date | File> = {}
+  let errors: Record<string, string[]> = {}
   let hasErrors = false
 
-  for (const v of formData.entries()) {
-    const key = v.key
-    let value = v.value
+  // Iterate through the FormData entries
+  for (const [key, value] of formData.entries()) {
     if (key.includes('$ACTION')) continue
 
-    if (key === 'birthDt' && value && value.trim()) {
-      value = format(new Date(value), 'yyyy-MM-dd')
+    let tempValue: string | boolean | Date | File = value
+
+    // Handle 'birthDt' field: convert date format
+    if (
+      key === 'birthDt' &&
+      typeof tempValue === 'string' &&
+      tempValue.trim()
+    ) {
+      tempValue = format(new Date(tempValue), 'yyyy-MM-dd')
     }
 
-    if (['false', 'true'].includes(value)) {
-      value = value === 'true'
+    // Convert string 'true'/'false' to boolean and vice versa
+    if (typeof tempValue === 'string') {
+      if (tempValue === 'false' || tempValue === 'true') {
+        tempValue = tempValue === 'true' // 'true' as boolean
+      }
     }
 
-    form[key] = value
+    // Convert boolean to string ('true'/'false')
+    if (typeof tempValue === 'boolean') {
+      tempValue = tempValue ? 'true' : 'false'
+    }
+
+    form[key] = tempValue
   }
 
-  // 필수 항목 검증 S
-  const requiredFields = {
+  // Required fields validation
+  const requiredFields: Record<string, string> = {
     email: '이메일을 입력하세요.',
     name: '이름을 입력하세요.',
     password: '비밀번호를 입력하세요.',
@@ -58,26 +71,25 @@ export const processJoin = async (params, formData: FormData) => {
     }
   }
 
-  // 주소 항목 검증
+  // Address validation
   if (
-    !form.zipCode ||
-    !form.zipCode?.trim() ||
-    !form.address ||
-    !form.address?.trim()
+    typeof form.zipCode === 'string' &&
+    (!form.zipCode.trim() ||
+      (typeof form.address === 'string' && !form.address.trim()))
   ) {
     errors.address = errors.address ?? []
     errors.address.push('주소를 입력하세요.')
     hasErrors = true
   }
-  // 필수 항목 검증 E
-  // 비밀번호와 비밀번호 확인 일치여부
+
+  // Password match validation
   if (form?.password && form?.password !== form?.confirmPassword) {
     errors.confirmPassword = errors.confirmPassword ?? []
     errors.confirmPassword.push('비밀번호가 일치하지 않습니다.')
     hasErrors = true
   }
 
-  /* 서버 요청 처리 S */
+  // Server request handling
   if (!hasErrors) {
     const apiUrl = process.env.API_URL + '/member/join'
     try {
@@ -91,52 +103,52 @@ export const processJoin = async (params, formData: FormData) => {
 
       if (res.status !== 201) {
         const result = await res.json()
-        errors = result.message
+        errors = result.message || errors
+        hasErrors = true
       }
     } catch (err) {
-      console.error(err)
+      console.error('API Request Error:', err)
+      errors.api = ['서버 요청 중 오류가 발생했습니다.']
+      hasErrors = true
     }
   }
-  /* 서버 요청 처리 E */
 
   if (hasErrors) {
     return errors
   }
 
-  // 회원 가입 완료 후 이동
+  // Redirect after successful registration
   redirect(redirectUrl)
 }
 
 /**
  * 로그인 처리
- *
  * @param params
  * @param formData
  */
 export const processLogin = async (params, formData: FormData) => {
   const redirectUrl = params?.redirectUrl ?? '/'
-
-  let errors = {}
+  let errors: Record<string, string[]> = {}
   let hasErrors = false
 
-  // 필수 항목 검증 S
+  // Required fields validation
   const email = formData.get('email')
   const password = formData.get('password')
-  if (!email || !email.trim()) {
+
+  // Only trim string values to avoid issues with File type
+  if (typeof email === 'string' && (!email || !email.trim())) {
     errors.email = errors.email ?? []
     errors.email.push('이메일을 입력하세요.')
     hasErrors = true
   }
 
-  if (!password || !password.trim()) {
+  if (typeof password === 'string' && (!password || !password.trim())) {
     errors.password = errors.password ?? []
     errors.password.push('비밀번호를 입력하세요.')
     hasErrors = true
   }
 
-  // 필수 항목 검증 E
-
-  // 서버 요청 처리 S
+  // Server request handling
   if (!hasErrors) {
     const apiUrl = process.env.API_URL + '/member/login'
     try {
@@ -150,7 +162,7 @@ export const processLogin = async (params, formData: FormData) => {
 
       const result = await res.json()
       if (res.status === 200 && result.success) {
-        // 회원 인증 성공
+        // Successful login, set cookie
         const cookie = await cookies()
         cookie.set('token', result.data, {
           httpOnly: true,
@@ -159,42 +171,44 @@ export const processLogin = async (params, formData: FormData) => {
           path: '/',
         })
       } else {
-        // 회원 인증 실패
-        errors = result.message
+        // Login failed
+        errors = result.message || errors
         hasErrors = true
       }
     } catch (err) {
-      console.error(err)
+      console.error('Login Request Error:', err)
+      errors.api = ['서버 요청 중 오류가 발생했습니다.']
+      hasErrors = true
     }
   }
-  // 서버 요청 처리 E
 
   if (hasErrors) {
     return errors
   }
 
-  // 캐시 비우기
+  // Cache revalidation and redirect after successful login
   revalidatePath('/', 'layout')
-
-  // 로그인 성공시 이동
   redirect(redirectUrl, RedirectType.replace)
 }
 
 /**
  * 로그인한 회원 정보를 조회
- *
  */
 export const getUserInfo = async () => {
   const cookie = await cookies()
   if (!cookie.has('token')) return
 
   try {
-    const res = await apiRequest('/member')
+    const res = await apiRequest('/member', 'GET', {
+      headers: {
+        Authorization: `Bearer ${cookie.get('token')}`,
+      },
+    })
     if (res.status === 200) {
       const result = await res.json()
       return result.success && result.data
     }
   } catch (err) {
-    console.error(err)
+    console.error('Error fetching user info:', err)
   }
 }

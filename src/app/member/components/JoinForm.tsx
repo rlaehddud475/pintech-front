@@ -41,6 +41,7 @@ type JoinFormProps = {
   onClick: (field: keyof FormType, value: ClickValue) => void
   onChange: (e: ChangeEvent<HTMLInputElement>) => void
   onSelectDate: (date: Date | [Date, Date] | null) => void
+  onSubmit: (e: React.FormEvent) => void // 추가된 onSubmit
   actionState: ActionState
 }
 
@@ -51,13 +52,16 @@ const JoinForm = ({
   onClick,
   onChange,
   onSelectDate,
+  onSubmit, // 추가된 onSubmit
   actionState,
 }: JoinFormProps) => {
-  const [errors, formAction, isPending] = actionState
+  const [errors, , isPending] = actionState // Removed formAction since it wasn't being used
 
   return (
     <>
-      <StyledForm action={formAction} autoComplete="off">
+      <StyledForm onSubmit={onSubmit} autoComplete="off">
+        {' '}
+        {/* onSubmit 핸들러 추가 */}
         <input type="hidden" name="gender" defaultValue={form?.gender ?? ''} />
         <input
           type="hidden"
@@ -84,7 +88,6 @@ const JoinForm = ({
           name="optionalTerms"
           defaultValue={form?.optionalTerms ?? ''}
         />
-
         <Input
           type="text"
           name="email"
@@ -93,7 +96,6 @@ const JoinForm = ({
           onChange={onChange}
         />
         <Messages color="danger">{errors?.email}</Messages>
-
         <Input
           type="password"
           name="password"
@@ -102,7 +104,6 @@ const JoinForm = ({
           onChange={onChange}
         />
         <Messages color="danger">{errors?.password}</Messages>
-
         <Input
           type="password"
           name="confirmPassword"
@@ -111,7 +112,6 @@ const JoinForm = ({
           onChange={onChange}
         />
         <Messages color="danger">{errors?.confirmPassword}</Messages>
-
         <Input
           type="text"
           name="name"
@@ -120,7 +120,6 @@ const JoinForm = ({
           onChange={onChange}
         />
         <Messages color="danger">{errors?.name}</Messages>
-
         <div className="address-row">
           <Input
             type="text"
@@ -131,7 +130,6 @@ const JoinForm = ({
           />
           <SmallButton type="button">주소찾기</SmallButton>
         </div>
-
         <Input
           type="text"
           name="address"
@@ -147,7 +145,6 @@ const JoinForm = ({
           onChange={onChange}
         />
         <Messages color="danger">{errors?.address}</Messages>
-
         <Input
           type="text"
           name="phoneNumber"
@@ -156,7 +153,6 @@ const JoinForm = ({
           onChange={onChange}
         />
         <Messages color="danger">{errors?.phoneNumber}</Messages>
-
         <div className="row">
           <div className="tit">성별</div>
           <div className="radio-buttons">
@@ -179,7 +175,6 @@ const JoinForm = ({
           </div>
         </div>
         <Messages color="danger">{errors?.gender}</Messages>
-
         <div className="row">
           <div className="tit">생년월일</div>
           <div>
@@ -192,7 +187,6 @@ const JoinForm = ({
           </div>
         </div>
         <Messages color="danger">{errors?.birthDt}</Messages>
-
         <div className="terms">
           <div
             className="terms-row"
@@ -226,7 +220,6 @@ const JoinForm = ({
             개인정보 수집 및 이용에 동의합니다.
           </div>
         </div>
-
         <div
           className="terms-row"
           onClick={() =>
@@ -236,7 +229,6 @@ const JoinForm = ({
           {form?.optionalTerms ? <MdCheckBox /> : <MdCheckBoxOutlineBlank />}
           광고성 정보 전송에 동의합니다.(선택)
         </div>
-
         <BigButton type="submit" disabled={isPending} className="submit-btn">
           가입하기
         </BigButton>
