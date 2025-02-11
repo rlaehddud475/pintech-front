@@ -7,8 +7,9 @@ export default async function apiRequest(url, method = 'GET', body) {
   const cookie = await cookies()
   const token = cookie.get('token')
 
-  let headers = null
-  const options = { method }
+  let headers: Record<string, string> | null = null
+  const options: RequestInit = { method }
+
   if (token?.value && token?.value?.trim()) {
     headers = {
       Authorization: `Bearer ${token}`,
@@ -22,6 +23,7 @@ export default async function apiRequest(url, method = 'GET', body) {
       body = JSON.stringify(body)
     }
 
+    // body를 options에 추가
     options.body = body
   }
 

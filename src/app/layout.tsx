@@ -7,7 +7,6 @@ import { getUserInfo } from './member/services/actions'
 import { UserProvider } from './global/contexts/UserContext'
 import 'react-datepicker/dist/react-datepicker.css'
 import './globals.css'
-import { after } from 'next/server'
 
 export const metadata: Metadata = {
   title: '핀테크 과정 포트폴리오',

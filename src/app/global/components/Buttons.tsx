@@ -1,6 +1,7 @@
 import styled, { css } from 'styled-components'
 import { buttonColors } from '../styles/colors'
 import sizes from '../styles/sizes'
+import type { CommonType } from '../types/StyledType'
 
 const { dark } = buttonColors
 const { tiny, small, normal, medium, big, extra } = sizes
@@ -17,7 +18,7 @@ const commonStyle = css`
   }
 `
 
-function changeColor(color) {
+function changeColor(color: string) {
   const selected = color && buttonColors[color]
   let _css = ''
   if (selected) {
@@ -37,7 +38,7 @@ function changeColor(color) {
   `
 }
 
-export const TinyButton = styled.button`
+export const TinyButton = styled.button<CommonType>`
   ${commonStyle}
   height: 18px;
   font-size: ${tiny};
@@ -50,7 +51,7 @@ export const TinyButton = styled.button`
   ${({ color }) => changeColor(color)}
 `
 
-export const SmallButton = styled.button`
+export const SmallButton = styled.button<CommonType>`
   ${commonStyle}
   height: 25px;
   font-size: ${small};
@@ -63,7 +64,7 @@ export const SmallButton = styled.button`
   ${({ color }) => changeColor(color)}
 `
 
-export const Button = styled.button`
+export const Button = styled.button<CommonType>`
   ${commonStyle}
   font-size: ${normal};
   ${({ width }) =>
@@ -74,7 +75,7 @@ export const Button = styled.button`
   ${({ color }) => changeColor(color)}
 `
 
-export const MediumButton = styled.button`
+export const MediumButton = styled.button<CommonType>`
   ${commonStyle}
   height: 45px;
   font-size: ${medium};
@@ -87,7 +88,7 @@ export const MediumButton = styled.button`
   ${({ color }) => changeColor(color)}
 `
 
-export const BigButton = styled.button`
+export const BigButton = styled.button<CommonType>`
   ${commonStyle}
   height: 55px;
   font-size: ${big};
@@ -100,7 +101,7 @@ export const BigButton = styled.button`
   ${({ color }) => changeColor(color)}
 `
 
-export const ExtraButton = styled.button`
+export const ExtraButton = styled.button<CommonType>`
   ${commonStyle}
   height: 65px;
   font-size: ${extra};
@@ -113,7 +114,7 @@ export const ExtraButton = styled.button`
   ${({ color }) => changeColor(color)}
 `
 
-export const ButtonGroup = styled.div`
+export const ButtonGroup = styled.div<CommonType>`
   display: flex;
   width: 100%;
 

@@ -1,5 +1,5 @@
 'use server'
-import { redirect } from 'next/navigation'
+import { redirect, RedirectType } from 'next/navigation'
 import { format } from 'date-fns'
 import { cookies } from 'next/headers'
 import apiRequest from '@/app/global/libs/apiRequest'
@@ -17,7 +17,9 @@ export const processJoin = async (params, formData: FormData) => {
   let errors = {}
   let hasErrors = false
 
-  for (let [key, value] of formData.entries()) {
+  for (const v of formData.entries()) {
+    const key = v.key
+    let value = v.value
     if (key.includes('$ACTION')) continue
 
     if (key === 'birthDt' && value && value.trim()) {
@@ -175,7 +177,7 @@ export const processLogin = async (params, formData: FormData) => {
   revalidatePath('/', 'layout')
 
   // 로그인 성공시 이동
-  redirect(redirectUrl)
+  redirect(redirectUrl, RedirectType.replace)
 }
 
 /**
@@ -192,5 +194,7 @@ export const getUserInfo = async () => {
       const result = await res.json()
       return result.success && result.data
     }
-  } catch (err) {}
+  } catch (err) {
+    console.error(err)
+  }
 }
